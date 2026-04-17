@@ -8,7 +8,7 @@ import 'react-calendar/dist/Calendar.css';
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [streakData, setStreakData] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateTasks, setDateTasks] = useState([]);
   const [dateTasksLoading, setDateTasksLoading] = useState(false);
 
@@ -29,8 +29,21 @@ export default function DashboardPage() {
         console.error(err);
       }
     };
+    const fetchTodayTasks = async () => {
+      const dateStr = new Date().toLocaleDateString('en-CA');
+      setDateTasksLoading(true);
+      try {
+        const res = await api.get(`/api/activities/tasks/by_date/?date=${dateStr}`);
+        setDateTasks(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setDateTasksLoading(false);
+      }
+    };
     fetchStats();
     fetchStreak();
+    fetchTodayTasks();
   }, []);
 
   const handleDayClick = async (date) => {
@@ -167,25 +180,28 @@ export default function DashboardPage() {
       </div>
       
       <div className="glass-card p-6 mt-6">
-        <h3 className="text-lg font-semibold text-slate-700 mb-4 tracking-tight">Actionable Insights</h3>
-        <div className="bg-white/50 border border-slate-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow max-w-md">
-          <h4 className="font-medium text-slate-600 mb-2">Completion Rate</h4>
-          <p className="text-3xl font-bold text-blue-600">
-            {stats.weekly.total ? Math.round((stats.weekly.completed / stats.weekly.total) * 100) : 0}%
-          </p>
-          <p className="text-sm text-slate-500 mt-1">Overall tasks completed this week.</p>
-        </div>
-      </div>
+        <div className="flex flex-col sm:flex-row gap-8">
+          {/* Actionable Insights */}
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-slate-700 mb-4 tracking-tight">Actionable Insights</h3>
+            <div className="bg-white/50 border border-slate-100 rounded-xl p-5 shadow-sm">
+              <h4 className="font-medium text-slate-600 mb-2">Completion Rate</h4>
+              <p className="text-3xl font-bold text-blue-600">
+                {stats.weekly.total ? Math.round((stats.weekly.completed / stats.weekly.total) * 100) : 0}%
+              </p>
+              <p className="text-sm text-slate-500 mt-1">Overall tasks completed this week.</p>
+            </div>
+          </div>
 
-      <div className="glass-card p-6 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-        <div className="flex flex-col sm:flex-row gap-8 items-center relative z-10">
-          <div className="flex-1 text-center sm:text-left">
+          <div className="hidden sm:block w-px bg-slate-100"></div>
+
+          {/* Active Streak */}
+          <div className="flex-1 text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               <Flame size={14} fill="currentColor" /> Active Streak
             </div>
             <h3 className="text-xl font-bold text-slate-800 tracking-tight mb-1">Consistency is Key</h3>
-            <div className="flex items-center justify-center sm:justify-start gap-4 my-6">
+            <div className="flex items-center gap-4 my-4">
               <div className="relative">
                 <div className="absolute inset-0 bg-orange-500 blur-xl opacity-20 animate-pulse"></div>
                 <div className="relative bg-gradient-to-br from-orange-500 to-amber-400 p-4 rounded-2xl shadow-lg shadow-orange-200">
@@ -200,19 +216,22 @@ export default function DashboardPage() {
               </div>
             </div>
             <p className="text-slate-500 text-sm italic">
-              {streakData?.current_streak > 0 
-                ? "You're on fire! Keep it up to reach the next milestone." 
+              {streakData?.current_streak > 0
+                ? "You're on fire! Keep it up to reach the next milestone."
                 : "Start your streak today by completing your first task!"}
             </p>
           </div>
-          
-          <div className="flex-col items-center gap-4 hidden sm:flex">
-             <div className="h-24 w-[1px] bg-slate-100"></div>
-          </div>
+        </div>
+      </div>
 
-          <div className="flex-1 flex flex-col items-center w-full">
-            <h4 className="text-sm font-semibold text-slate-500 mb-4 self-start sm:self-center uppercase tracking-widest">Activity Map</h4>
-            <div className="custom-calendar-wrapper w-full flex justify-center scale-95 origin-center">
+      <div className="glass-card p-6 overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+        <div className="flex flex-col sm:flex-row gap-8 items-stretch relative z-10">
+
+          {/* Left: Calendar */}
+          <div className="flex flex-col items-start w-full sm:w-auto shrink-0">
+            <h4 className="text-sm font-semibold text-slate-500 mb-4 uppercase tracking-widest">Activity Map</h4>
+            <div className="custom-calendar-wrapper">
               {streakData && (
                 <Calendar
                   value={selectedDate}
@@ -229,34 +248,73 @@ export default function DashboardPage() {
                 />
               )}
             </div>
-
-            {selectedDate && (
-              <div className="w-full mt-4 px-1">
-                <h5 className="text-sm font-semibold text-slate-600 mb-2">
-                  {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                </h5>
-                {dateTasksLoading ? (
-                  <p className="text-xs text-slate-400">Loading...</p>
-                ) : dateTasks.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">No tasks on this day.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {dateTasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-2 p-2 bg-white/60 rounded-lg border border-slate-100">
-                        {task.is_completed
-                          ? <CheckCircle2 size={16} className="text-green-500 shrink-0" />
-                          : <Circle size={16} className="text-slate-300 shrink-0" />
-                        }
-                        <span className={`text-xs ${task.is_completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
-                          {task.description}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
+
+          {/* Right: Date progress */}
+          {selectedDate && (
+            <div className="flex-1 flex justify-between flex-col ">
+              <h3 className="text-lg font-semibold text-slate-700 mb-4 tracking-tight">
+                {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+              </h3>
+              {dateTasksLoading ? (
+                <p className="text-sm text-slate-400">Loading...</p>
+              ) : dateTasks.length === 0 ? (
+                <p className="text-sm text-slate-400 italic">No tasks on this day.</p>
+              ) : (() => {
+                const completed = dateTasks.filter(t => t.is_completed).length;
+                const pending = dateTasks.length - completed;
+                const dateChartData = [
+                  { name: 'Completed', value: completed },
+                  { name: 'Pending', value: pending },
+                ];
+                const COLORS = ['#10b981', '#f43f5e'];
+                return (
+                  <div className="flex flex-row gap-6 items-start">
+                    {/* Pie chart + legend */}
+                    <div className="shrink-0">
+                      <div className="h-44 w-44">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={dateChartData} innerRadius={45} outerRadius={65} paddingAngle={5} dataKey="value">
+                              {dateChartData.map((_, index) => (
+                                <Cell key={index} fill={COLORS[index]} />
+                              ))}
+                            </Pie>
+                            <PieTooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex flex-col gap-2 mt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                          <span className="text-xs text-slate-600">Completed ({completed})</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-rose-500"></div>
+                          <span className="text-xs text-slate-600">Pending ({pending})</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Task list */}
+                    <div className="flex-1 space-y-2 pt-2 overflow-y-auto max-h-60">
+                      {dateTasks.map(task => (
+                        <div key={task.id} className="flex items-center gap-2 p-2 bg-white/60 rounded-lg border border-slate-100">
+                          {task.is_completed
+                            ? <CheckCircle2 size={16} className="text-green-500 shrink-0" />
+                            : <Circle size={16} className="text-slate-300 shrink-0" />
+                          }
+                          <span className={`text-sm ${task.is_completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                            {task.description}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
         </div>
       </div>
     </div>
