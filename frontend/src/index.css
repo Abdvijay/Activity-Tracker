@@ -47,11 +47,19 @@
   background: #e2e8f0;
 }
 .custom-calendar-wrapper .react-calendar__tile--active {
-  background: var(--primary) !important;
-  color: white;
+  background: #3b82f6 !important;
+  color: white !important;
+  font-weight: 700;
+}
+.custom-calendar-wrapper .react-calendar__tile--active:hover {
+  background: #2563eb !important;
 }
 .active-streak-day {
-  background-color: #fde68a !important; 
-  color: #b45309 !important; 
+  background-color: #fde68a !important;
+  color: #b45309 !important;
   font-weight: bold;
+}
+.custom-calendar-wrapper .react-calendar__tile--active.active-streak-day {
+  background: #3b82f6 !important;
+  color: white !important;
 }
