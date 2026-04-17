@@ -15,7 +15,18 @@ export default function ReportPage() {
   const handleShare = async () => {
     setCapturing(true);
     try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, backgroundColor: '#f8fafc' });
+      const el = reportRef.current;
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f8fafc',
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        width: el.offsetWidth,
+        height: el.scrollHeight,
+        windowWidth: el.offsetWidth,
+        windowHeight: el.scrollHeight,
+      });
       const imgUrl = canvas.toDataURL('image/png');
       setPreviewImg(imgUrl);
       setShowModal(true);
