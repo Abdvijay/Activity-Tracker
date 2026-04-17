@@ -179,7 +179,7 @@ export default function ReportPage() {
         </div>
 
         {/* Recent Activity List */}
-        <div className="lg:col-span-3 glass-card p-6">
+        <div data-html2canvas-ignore className="lg:col-span-3 glass-card p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-slate-800">Recent Activity</h3>
             <span className="text-xs text-blue-500 font-semibold cursor-pointer hover:underline">View History</span>
