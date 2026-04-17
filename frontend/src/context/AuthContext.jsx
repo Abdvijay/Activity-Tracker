@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import api from '../api';
 
 const AuthContext = createContext();
 
@@ -12,17 +12,17 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();
     } else {
       setLoading(false);
-      delete axios.defaults.headers.common['Authorization'];
+      delete api.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/auth/user/');
+      const res = await api.get('/api/auth/user/');
       setUser(res.data);
     } catch (err) {
       console.error(err);
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (username, password) => {
-    const res = await axios.post('http://localhost:8000/api/auth/login/', { username, password });
+    const res = await api.post('/api/auth/login/', { username, password });
     localStorage.setItem('token', res.data.access);
     setToken(res.data.access);
     navigate('/app/dashboard');

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -17,7 +17,7 @@ export default function RegisterPage() {
       return setError('Passwords do not match');
     }
     try {
-      await axios.post('http://localhost:8000/api/auth/register/', {
+      await api.post('/api/auth/register/', {
         username: formData.username,
         email: formData.email,
         phone: formData.phone,

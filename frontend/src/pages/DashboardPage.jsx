@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { PieChart, Pie, Cell, Tooltip as PieTooltip, ResponsiveContainer } from 'recharts';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip, Legend } from 'recharts';
 import { LayoutDashboard, Flame } from 'lucide-react';
@@ -13,7 +13,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/activities/tasks/dashboard_stats/');
+        const res = await api.get('/api/activities/tasks/dashboard_stats/');
         setStats(res.data);
       } catch (err) {
         console.error(err);
@@ -21,7 +21,7 @@ export default function DashboardPage() {
     };
     const fetchStreak = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/activities/tasks/streak/');
+        const res = await api.get('/api/activities/tasks/streak/');
         setStreakData(res.data);
       } catch (err) {
         console.error(err);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
       return setError('Passwords do not match');
     }
     try {
-      const res = await axios.post('http://localhost:8000/api/auth/reset-password/', {
+      const res = await api.post('/api/auth/reset-password/', {
         username: formData.username,
         new_password: formData.newPassword
       });

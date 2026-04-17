@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import api from '../api';
 import AuthContext from '../context/AuthContext';
 import { Plus, Trash2, CheckCircle2, Circle, CheckSquare } from 'lucide-react';
 
@@ -14,7 +14,7 @@ export default function ChecklistPage() {
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/activities/tasks/');
+      const res = await api.get('/api/activities/tasks/');
       setTasks(res.data);
     } catch (err) {
       console.error(err);
@@ -25,7 +25,7 @@ export default function ChecklistPage() {
     e.preventDefault();
     if (!newTask.trim()) return;
     try {
-      const res = await axios.post('http://localhost:8000/api/activities/tasks/', { description: newTask });
+      const res = await api.post('/api/activities/tasks/', { description: newTask });
       setTasks([res.data, ...tasks]);
       setNewTask('');
     } catch (err) {
@@ -35,7 +35,7 @@ export default function ChecklistPage() {
 
   const toggleTask = async (task) => {
     try {
-      const res = await axios.patch(`http://localhost:8000/api/activities/tasks/${task.id}/`, {
+      const res = await api.patch(`/api/activities/tasks/${task.id}/`, {
         is_completed: !task.is_completed
       });
       setTasks(tasks.map(t => t.id === task.id ? res.data : t));
@@ -46,7 +46,7 @@ export default function ChecklistPage() {
 
   const deleteTask = async (id) => {
     try {
-      await axios.delete(`http://localhost:8000/api/activities/tasks/${id}/`);
+      await api.delete(`/api/activities/tasks/${id}/`);
       setTasks(tasks.filter(t => t.id !== id));
     } catch (err) {
       console.error(err);

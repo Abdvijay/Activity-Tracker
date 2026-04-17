@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { FileText, TrendingUp, CheckCircle2, Flame, Calendar as CalendarIcon } from 'lucide-react';
 
 export default function ReportPage() {
@@ -11,9 +11,9 @@ export default function ReportPage() {
     const fetchData = async () => {
       try {
         const [reportRes, tasksRes, streakRes] = await Promise.all([
-          axios.get('http://localhost:8000/api/activities/tasks/report/'),
-          axios.get('http://localhost:8000/api/activities/tasks/'),
-          axios.get('http://localhost:8000/api/activities/tasks/streak/')
+          api.get('/api/activities/tasks/report/'),
+          api.get('/api/activities/tasks/'),
+          api.get('/api/activities/tasks/streak/')
         ]);
         setReport(reportRes.data);
         setRecentTasks(tasksRes.data.slice(0, 5));
