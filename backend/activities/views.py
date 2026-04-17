@@ -61,6 +61,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         })
 
     @action(detail=False, methods=['get'])
+    def by_date(self, request):
+        date_str = request.query_params.get('date')
+        if not date_str:
+            return Response({"error": "date parameter required"}, status=status.HTTP_400_BAD_REQUEST)
+        tasks = self.get_queryset().filter(created_at__date=date_str)
+        serializer = self.get_serializer(tasks, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
     def streak(self, request):
         from django.db.models.functions import TruncDate
         

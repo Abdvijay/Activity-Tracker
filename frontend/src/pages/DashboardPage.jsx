@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import { PieChart, Pie, Cell, Tooltip as PieTooltip, ResponsiveContainer } from 'recharts';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip, Legend } from 'recharts';
-import { LayoutDashboard, Flame } from 'lucide-react';
+import { LayoutDashboard, Flame, CheckCircle2, Circle } from 'lucide-react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [streakData, setStreakData] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [dateTasks, setDateTasks] = useState([]);
+  const [dateTasksLoading, setDateTasksLoading] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -30,6 +32,21 @@ export default function DashboardPage() {
     fetchStats();
     fetchStreak();
   }, []);
+
+  const handleDayClick = async (date) => {
+    setSelectedDate(date);
+    const dateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
+    setDateTasksLoading(true);
+    try {
+      const res = await api.get(`/api/activities/tasks/by_date/?date=${dateStr}`);
+      setDateTasks(res.data);
+    } catch (err) {
+      console.error(err);
+      setDateTasks([]);
+    } finally {
+      setDateTasksLoading(false);
+    }
+  };
 
   if (!stats) return <p className="text-center py-10 text-slate-500">Loading Dashboard...</p>;
 
@@ -197,11 +214,12 @@ export default function DashboardPage() {
             <h4 className="text-sm font-semibold text-slate-500 mb-4 self-start sm:self-center uppercase tracking-widest">Activity Map</h4>
             <div className="custom-calendar-wrapper w-full flex justify-center scale-95 origin-center">
               {streakData && (
-                <Calendar 
+                <Calendar
+                  value={selectedDate}
+                  onClickDay={handleDayClick}
                   tileClassName={({ date, view }) => {
                     if (view === 'month') {
-                      const d = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-                      const dateStr = d.toISOString().split('T')[0];
+                      const dateStr = date.toLocaleDateString('en-CA');
                       if (streakData.active_dates.includes(dateStr)) {
                         return 'active-streak-day';
                       }
@@ -211,6 +229,33 @@ export default function DashboardPage() {
                 />
               )}
             </div>
+
+            {selectedDate && (
+              <div className="w-full mt-4 px-1">
+                <h5 className="text-sm font-semibold text-slate-600 mb-2">
+                  {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </h5>
+                {dateTasksLoading ? (
+                  <p className="text-xs text-slate-400">Loading...</p>
+                ) : dateTasks.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">No tasks on this day.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {dateTasks.map(task => (
+                      <div key={task.id} className="flex items-center gap-2 p-2 bg-white/60 rounded-lg border border-slate-100">
+                        {task.is_completed
+                          ? <CheckCircle2 size={16} className="text-green-500 shrink-0" />
+                          : <Circle size={16} className="text-slate-300 shrink-0" />
+                        }
+                        <span className={`text-xs ${task.is_completed ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                          {task.description}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
